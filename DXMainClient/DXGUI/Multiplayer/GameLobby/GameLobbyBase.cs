@@ -748,6 +748,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             else
                 return mapList;
         }
+        
 
         /// <summary>
         /// Refreshes the map selection UI to match the currently selected map
