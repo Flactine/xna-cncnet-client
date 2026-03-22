@@ -5,9 +5,8 @@ using System.Runtime.Versioning;
 using System.Security.Principal;
 
 using Rampastring.Tools;
-using ClientCore;
 
-namespace DTAClient
+namespace ClientCore
 {
     /// <summary>
     /// Utility for restarting the client with administrator privileges.

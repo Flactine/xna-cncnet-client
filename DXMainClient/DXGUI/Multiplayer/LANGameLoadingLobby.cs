@@ -21,7 +21,7 @@ namespace DTAClient.DXGUI.Multiplayer
     class LANGameLoadingLobby : GameLoadingLobbyBase
     {
         private const double DROPOUT_TIMEOUT = 20.0;
-        private const double GAME_BROADCAST_INTERVAL = 2.0;
+        private const double GAME_BROADCAST_INTERVAL = 10.0;
 
         private const string OPTIONS_COMMAND = "OPTS";
         private const string GAME_LAUNCH_COMMAND = "START";
@@ -55,8 +55,7 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 new ClientStringCommandHandler(CHAT_COMMAND, Client_HandleChatMessage),
                 new ClientStringCommandHandler(OPTIONS_COMMAND, Client_HandleOptionsMessage),
-                new ClientNoParamCommandHandler(GAME_LAUNCH_COMMAND, Client_HandleStartCommand),
-                new ClientNoParamCommandHandler(PLAYER_QUIT_COMMAND, HandleHostQuit),
+                new ClientNoParamCommandHandler(GAME_LAUNCH_COMMAND, Client_HandleStartCommand)
             };
 
             WindowManager.GameClosing += WindowManager_GameClosing;
@@ -93,20 +92,16 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private string localFileHash;
 
-        private IReadOnlyList<GameMode> gameModes => mapLoader.GameModes;
+        private List<GameMode> gameModes => mapLoader.GameModes;
 
         private int loadedGameId;
 
         private bool started = false;
-        private volatile bool leaving;
-        private int sessionId;
 
         public void SetUp(bool isHost,
             IPEndPoint hostEndPoint, TcpClient client,
             int loadedGameId)
         {
-            leaving = false;
-            sessionId++;
             Refresh(isHost);
 
             this.hostEndPoint = hostEndPoint;
@@ -270,11 +265,7 @@ namespace DTAClient.DXGUI.Multiplayer
 
         private void LpInfo_ConnectionLost(object sender, EventArgs e)
         {
-            AddCallback(new Action<LANPlayerInfo>(HandleConnectionLost), (LANPlayerInfo)sender);
-        }
-
-        private void HandleConnectionLost(LANPlayerInfo lpInfo)
-        {
+            var lpInfo = (LANPlayerInfo)sender;
             CleanUpPlayer(lpInfo);
             Players.Remove(lpInfo);
 
@@ -309,7 +300,6 @@ namespace DTAClient.DXGUI.Multiplayer
         private void CleanUpPlayer(LANPlayerInfo lpInfo)
         {
             lpInfo.MessageReceived -= LpInfo_MessageReceived;
-            lpInfo.ConnectionLost -= LpInfo_ConnectionLost;
             lpInfo.TcpClient.Close();
         }
 
@@ -322,8 +312,6 @@ namespace DTAClient.DXGUI.Multiplayer
             var msg = string.Empty;
 
             int bytesRead = 0;
-
-            int mySessionId = sessionId;
 
             if (!client.Connected)
                 return;
@@ -340,15 +328,8 @@ namespace DTAClient.DXGUI.Multiplayer
                 }
                 catch (Exception ex)
                 {
-                    if (leaving)
-                        break;
-
                     Logger.Log("Reading data from the server failed! Message: " + ex.ToString());
-                    AddCallback(() =>
-                    {
-                        if (sessionId == mySessionId)
-                            LeaveGame();
-                    });
+                    LeaveGame();
                     break;
                 }
 
@@ -377,22 +358,14 @@ namespace DTAClient.DXGUI.Multiplayer
 
                     foreach (string cmd in commands)
                     {
-                        string capturedCmd = cmd;
-                        AddCallback(() =>
-                        {
-                            if (sessionId == mySessionId)
-                                HandleMessageFromServer(capturedCmd);
-                        });
+                        AddCallback(new Action<string>(HandleMessageFromServer), cmd);
                     }
 
                     continue;
                 }
 
-                if (leaving)
-                    break;
-
                 Logger.Log("Reading data from the server failed (0 bytes received)!");
-                AddCallback(() => { if (sessionId == mySessionId) LeaveGame(); });
+                LeaveGame();
                 break;
             }
         }
@@ -410,17 +383,8 @@ namespace DTAClient.DXGUI.Multiplayer
             Logger.Log("Unknown LAN command from the server: " + message);
         }
 
-        private void HandleHostQuit()
-        {
-            if (!IsHost && !leaving)
-                LeaveGame();
-        }
-
         protected override void LeaveGame()
         {
-            if (leaving)
-                return;
-
             Clear();
             Disable();
 
@@ -431,7 +395,6 @@ namespace DTAClient.DXGUI.Multiplayer
         {
             if (IsHost)
             {
-                GameBroadcast?.Invoke(this, new GameBroadcastEventArgs("GAMECLOSED"));
                 BroadcastMessage(PLAYER_QUIT_COMMAND);
                 Players.ForEach(p => CleanUpPlayer((LANPlayerInfo)p));
                 Players.Clear();
@@ -441,8 +404,6 @@ namespace DTAClient.DXGUI.Multiplayer
             {
                 SendMessageToHost(PLAYER_QUIT_COMMAND);
             }
-
-            leaving = true;
 
             if (this.client.Connected)
                 this.client.Close();

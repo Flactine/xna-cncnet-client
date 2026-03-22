@@ -233,11 +233,8 @@ namespace ClientGUI
         /// <param name="description">The description of the message box.</param>
         public static void Show(WindowManager windowManager, string caption, string description)
         {
-            var panel = new DarkeningPanel(windowManager)
-            {
-                Focused = true
-            };
-
+            var panel = new DarkeningPanel(windowManager);
+            panel.Focused = true;
             windowManager.AddAndInitializeControl(panel);
 
             var msgBox = new XNAMessageBox(windowManager,
@@ -267,11 +264,7 @@ namespace ClientGUI
         /// <returns>The XNAMessageBox instance that is created.</returns>
         public static XNAMessageBox ShowYesNoDialog(WindowManager windowManager, string caption, string description)
         {
-            var panel = new DarkeningPanel(windowManager)
-            {
-                Focused = true
-            };
-
+            var panel = new DarkeningPanel(windowManager);
             windowManager.AddAndInitializeControl(panel);
 
             var msgBox = new XNAMessageBox(windowManager,

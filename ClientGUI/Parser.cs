@@ -95,12 +95,7 @@ namespace ClientGUI
 
         private int GetConstant(string constantName)
         {
-            if (!globalConstants.TryGetValue(constantName, out int value))
-                throw new KeyNotFoundException($"Constant '{constantName}' not found. " +
-                    $"Please check [ParserConstants] section in either {ClientConfiguration.CLIENT_SETTINGS} file, " +
-                    $"or any possible files that {ClientConfiguration.CLIENT_SETTINGS} depends on, e.g., GlobalThemeSettings.ini.'");
-
-            return value;
+            return globalConstants[constantName];
         }
 
         public void SetPrimaryControl(XNAControl primaryControl)
