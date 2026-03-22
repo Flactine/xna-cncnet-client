@@ -235,7 +235,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             gameListPanel.AddChild(lblFollowedGames);
 
             // Max number of games per column
-            const int maxGamesPerColumn = 4;
+            const int maxGamesPerColumn = 6;
             // Spacing buffer between columns
             const int columnBuffer = 20;
             // Spacing buffer between rows
