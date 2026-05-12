@@ -266,7 +266,7 @@ namespace DTAClient
                 (crashLogCopied ? "If the issue is repeatable, contact the {1} staff at {2} and provide the crash log file.".L10N("Client:Main:FatalErrorText3") :
                 "If the issue is repeatable, contact the {1} staff at {2}.".L10N("Client:Main:FatalErrorText4")),
                 MainClientConstants.GAME_NAME_LONG,
-                MainClientConstants.GAME_NAME_LONG,
+                MainClientConstants.GAME_NAME_SHORT,
                 MainClientConstants.SUPPORT_URL_SHORT);
 
             MainClientConstants.DisplayErrorAction("KABOOOOOOOM".L10N("Client:Main:FatalErrorTitle"), error, true);
