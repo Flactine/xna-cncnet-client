@@ -232,6 +232,77 @@ public class Translation : ICloneable
     }
 
     /// <summary>
+    /// 根据当前日期，将 [DateBasedMixes] 中配置的 MIX 文件硬链接/复制到游戏目录，
+    /// 并移除所有不在当前日期范围内的目标文件。
+    /// </summary>
+    public static void ApplyDateBasedMixes()
+    {
+        ClientConfiguration.Instance.RefreshDateBasedMixes();
+
+        DateTime today = DateTime.Now;
+
+        foreach (var dbm in ClientConfiguration.Instance.DateBasedMixes)
+        {
+            string sourcePath = SafePath.CombineFilePath(ProgramConstants.GamePath, dbm.Source);
+            string targetPath = SafePath.CombineFilePath(ProgramConstants.GamePath, dbm.Target);
+
+            bool inRange = IsDateInRange(today, dbm.StartMonth, dbm.StartDay, dbm.EndMonth, dbm.EndDay);
+
+            if (inRange)
+            {
+                if (File.Exists(sourcePath))
+                {
+                    string sourceHash = Utilities.CalculateSHA1ForFile(sourcePath);
+                    string targetHash = Utilities.CalculateSHA1ForFile(targetPath);
+
+                    if (sourceHash != targetHash)
+                    {
+                        Logger.Log($"DateBasedMixes: Applying {dbm.EventName} - " +
+                            $"linking {dbm.Source} -> {dbm.Target}");
+                        FileExtensions.CreateHardLinkFromSource(sourcePath, targetPath);
+                        new FileInfo(targetPath).IsReadOnly = true;
+                    }
+                }
+                else
+                {
+                    Logger.Log($"DateBasedMixes: Source file not found for {dbm.EventName}: {sourcePath}");
+                }
+            }
+            else
+            {
+                if (File.Exists(targetPath))
+                {
+                    Logger.Log($"DateBasedMixes: Removing {dbm.EventName} - deleting {dbm.Target}");
+                    new FileInfo(targetPath).IsReadOnly = false;
+                    File.Delete(targetPath);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 判断指定日期是否在给定的日期范围内。
+    /// 支持跨年范围（如 12-31 ~ 01-02）。
+    /// </summary>
+    private static bool IsDateInRange(DateTime date, int startMonth, int startDay, int endMonth, int endDay)
+    {
+        int dateValue = date.Month * 100 + date.Day;
+        int startValue = startMonth * 100 + startDay;
+        int endValue = endMonth * 100 + endDay;
+
+        if (startValue <= endValue)
+        {
+            // 普通范围，不跨年：如 12-24 ~ 12-26
+            return dateValue >= startValue && dateValue <= endValue;
+        }
+        else
+        {
+            // 跨年范围：如 12-31 ~ 01-02
+            return dateValue >= startValue || dateValue <= endValue;
+        }
+    }
+
+    /// <summary>
     /// Lists valid available translations from the <see cref="TranslationsFolderPath"/> along with their UI names.
     /// A localization is valid if it has a corresponding <see cref="TranslationIniName"/> file in the <see cref="TranslationsFolderPath"/>.
     /// </summary>
