@@ -545,16 +545,11 @@ namespace DTAClient.DXGUI.Generic
 
         private void CheckAndApplyDateBasedMixes()
         {
-            string todayStr = DateTime.Now.ToString("yyyy-MM-dd");
-
-            if (UserINISettings.Instance.DateBasedMixesLastApplied.Value == todayStr)
-                return;
-
             try
             {
+                // ApplyDateBasedMixes() 内部已通过 SHA1 比对做幂等保护，
+                // 因此不需要用日期来跳过，每次启动都检查即可。
                 Translation.ApplyDateBasedMixes();
-                UserINISettings.Instance.DateBasedMixesLastApplied.Value = todayStr;
-                UserINISettings.Instance.SaveSettings();
             }
             catch (Exception ex)
             {

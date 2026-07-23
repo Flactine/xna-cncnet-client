@@ -240,42 +240,68 @@ public class Translation : ICloneable
         ClientConfiguration.Instance.RefreshDateBasedMixes();
 
         DateTime today = DateTime.Now;
+        Logger.Log($"DateBasedMixes: Checking date-based mixes for {today:yyyy-MM-dd}");
 
-        foreach (var dbm in ClientConfiguration.Instance.DateBasedMixes)
+        var mixes = ClientConfiguration.Instance.DateBasedMixes;
+        if (mixes.Count == 0)
+            return;
+
+        // 收集所有在范围内的条目使用的目标文件
+        HashSet<string> activeTargets = new(StringComparer.OrdinalIgnoreCase);
+        foreach (var dbm in mixes)
         {
+            if (IsDateInRange(today, dbm.StartMonth, dbm.StartDay, dbm.EndMonth, dbm.EndDay))
+            {
+                activeTargets.Add(SafePath.CombineFilePath(ProgramConstants.GamePath, dbm.Target));
+            }
+        }
+
+        // 第一遍：处理在范围内的条目（创建/更新硬链接）
+        foreach (var dbm in mixes)
+        {
+            if (!IsDateInRange(today, dbm.StartMonth, dbm.StartDay, dbm.EndMonth, dbm.EndDay))
+                continue;
+
             string sourcePath = SafePath.CombineFilePath(ProgramConstants.GamePath, dbm.Source);
             string targetPath = SafePath.CombineFilePath(ProgramConstants.GamePath, dbm.Target);
 
-            bool inRange = IsDateInRange(today, dbm.StartMonth, dbm.StartDay, dbm.EndMonth, dbm.EndDay);
-
-            if (inRange)
+            if (File.Exists(sourcePath))
             {
-                if (File.Exists(sourcePath))
-                {
-                    string sourceHash = Utilities.CalculateSHA1ForFile(sourcePath);
-                    string targetHash = Utilities.CalculateSHA1ForFile(targetPath);
+                string sourceHash = Utilities.CalculateSHA1ForFile(sourcePath);
+                string targetHash = Utilities.CalculateSHA1ForFile(targetPath);
 
-                    if (sourceHash != targetHash)
-                    {
-                        Logger.Log($"DateBasedMixes: Applying {dbm.EventName} - " +
-                            $"linking {dbm.Source} -> {dbm.Target}");
-                        FileExtensions.CreateHardLinkFromSource(sourcePath, targetPath);
-                        new FileInfo(targetPath).IsReadOnly = true;
-                    }
-                }
-                else
+                if (sourceHash != targetHash)
                 {
-                    Logger.Log($"DateBasedMixes: Source file not found for {dbm.EventName}: {sourcePath}");
+                    Logger.Log($"DateBasedMixes: Applying {dbm.EventName} - " +
+                        $"linking {dbm.Source} -> {dbm.Target}");
+                    FileExtensions.CreateHardLinkFromSource(sourcePath, targetPath);
+                    new FileInfo(targetPath).IsReadOnly = true;
                 }
             }
             else
             {
-                if (File.Exists(targetPath))
-                {
-                    Logger.Log($"DateBasedMixes: Removing {dbm.EventName} - deleting {dbm.Target}");
-                    new FileInfo(targetPath).IsReadOnly = false;
-                    File.Delete(targetPath);
-                }
+                Logger.Log($"DateBasedMixes: Source file not found for {dbm.EventName}: {sourcePath}");
+            }
+        }
+
+        // 第二遍：处理不在范围内的条目（删除目标文件），
+        // 但跳过那些被在范围内条目共享的目标文件
+        foreach (var dbm in mixes)
+        {
+            if (IsDateInRange(today, dbm.StartMonth, dbm.StartDay, dbm.EndMonth, dbm.EndDay))
+                continue;
+
+            string targetPath = SafePath.CombineFilePath(ProgramConstants.GamePath, dbm.Target);
+
+            // 如果该目标文件被某个在范围内的条目使用，不删除
+            if (activeTargets.Contains(targetPath))
+                continue;
+
+            if (File.Exists(targetPath))
+            {
+                Logger.Log($"DateBasedMixes: Removing {dbm.EventName} - deleting {dbm.Target}");
+                new FileInfo(targetPath).IsReadOnly = false;
+                File.Delete(targetPath);
             }
         }
     }
