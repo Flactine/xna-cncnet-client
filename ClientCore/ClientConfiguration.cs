@@ -19,6 +19,7 @@ namespace ClientCore
         private const string SETTINGS = "Settings";
         private const string LINKS = "Links";
         private const string TRANSLATIONS = "Translations";
+        private const string DATE_BASED_MIXES = "DateBasedMixes";
         private const string USER_DEFAULTS = "UserDefaults";
 
         public const string CLIENT_SETTINGS = "DTACnCNetClient.ini";
@@ -67,6 +68,7 @@ namespace ClientCore
             }
 
             RefreshTranslationGameFiles();
+            RefreshDateBasedMixes();
 
             skillLevelOptions = SkillLevelOptions.SplitWithCleanup();
             maxSkillLevelIndex = Math.Max(0, skillLevelOptions.Length - 1);
@@ -364,6 +366,86 @@ namespace ClientCore
             }
 
             return gameFiles;
+        }
+
+        private List<DateBasedMix> _dateBasedMixes = new();
+
+        public List<DateBasedMix> DateBasedMixes => _dateBasedMixes;
+
+        /// <summary>
+        /// 强制刷新日期 Mix 配置列表。
+        /// </summary>
+        public void RefreshDateBasedMixes()
+        {
+            _dateBasedMixes = ParseDateBasedMixes();
+        }
+
+        /// <summary>
+        /// 从 ClientDefinitions.ini 的 [DateBasedMixes] 节解析日期 Mix 配置。
+        /// 格式：EventName=MM-DD~MM-DD,source,target 或 EventName=MM-DD,source,target
+        /// </summary>
+        private List<DateBasedMix> ParseDateBasedMixes()
+        {
+            List<DateBasedMix> dateBasedMixes = new();
+            if (!clientDefinitionsIni.SectionExists(DATE_BASED_MIXES))
+                return dateBasedMixes;
+
+            foreach (string key in clientDefinitionsIni.GetSectionKeys(DATE_BASED_MIXES))
+            {
+                string value = clientDefinitionsIni.GetStringValue(DATE_BASED_MIXES, key, string.Empty);
+                string[] parts = clientDefinitionsIni.GetStringListValue(DATE_BASED_MIXES, key, string.Empty);
+
+                // 格式：EventName=MM-DD~MM-DD,source,target 或 EventName=MM-DD,source,target
+                if (parts.Length != 3)
+                {
+                    throw new IniParseException($"Invalid syntax for value of [{DATE_BASED_MIXES}]{key}! " +
+                        $"Expected MM-DD~MM-DD,source,target or MM-DD,source,target, read {value}.");
+                }
+
+                string dateRange = parts[0].Trim();
+                string source = parts[1].Trim();
+                string target = parts[2].Trim();
+
+                int startMonth, startDay, endMonth, endDay;
+
+                if (dateRange.Contains('~'))
+                {
+                    string[] dateParts = dateRange.Split('~');
+                    if (dateParts.Length != 2)
+                    {
+                        throw new IniParseException($"Invalid date range format for [{DATE_BASED_MIXES}]{key}! " +
+                            $"Expected MM-DD~MM-DD, read {dateRange}.");
+                    }
+
+                    ParseDate(dateParts[0].Trim(), key, out startMonth, out startDay);
+                    ParseDate(dateParts[1].Trim(), key, out endMonth, out endDay);
+                }
+                else
+                {
+                    ParseDate(dateRange, key, out startMonth, out startDay);
+                    endMonth = startMonth;
+                    endDay = startDay;
+                }
+
+                dateBasedMixes.Add(new DateBasedMix(
+                    key, startMonth, startDay, endMonth, endDay, source, target));
+            }
+
+            return dateBasedMixes;
+        }
+
+        private static void ParseDate(string dateStr, string key, out int month, out int day)
+        {
+            string[] parts = dateStr.Split('-');
+            if (parts.Length != 2 ||
+                !int.TryParse(parts[0], out month) ||
+                !int.TryParse(parts[1], out day) ||
+                month < 1 || month > 12 ||
+                day < 1 || day > 31)
+            {
+                throw new IniParseException($"Invalid date format for [{DATE_BASED_MIXES}]{key}! " +
+                    $"Expected MM-DD, read {dateStr}.");
+            }
         }
 
         public string ExtraExeCommandLineParameters => clientDefinitionsIni.GetStringValue(SETTINGS, "ExtraCommandLineParams", string.Empty);

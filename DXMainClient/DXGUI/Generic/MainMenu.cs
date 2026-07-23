@@ -543,6 +543,25 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
+        private void CheckAndApplyDateBasedMixes()
+        {
+            string todayStr = DateTime.Now.ToString("yyyy-MM-dd");
+
+            if (UserINISettings.Instance.DateBasedMixesLastApplied.Value == todayStr)
+                return;
+
+            try
+            {
+                Translation.ApplyDateBasedMixes();
+                UserINISettings.Instance.DateBasedMixesLastApplied.Value = todayStr;
+                UserINISettings.Instance.SaveSettings();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Failed to apply date-based mixes. " + ex.ToString());
+            }
+        }
+
         private void FirstRunMessageBox_NoClicked(XNAMessageBox messageBox)
         {
             if (customComponentDialogQueued)
@@ -684,6 +703,7 @@ namespace DTAClient.DXGUI.Generic
             CheckForbiddenFiles();
             CheckIfFirstRun();
             CheckAndApplyTranslationGameFiles();
+            CheckAndApplyDateBasedMixes();
 
             Logger.Log("Main menu initialization complete.");
 
@@ -798,6 +818,7 @@ namespace DTAClient.DXGUI.Generic
             // (If a restart were required, Updater.Restart fires and the client
             // exits; the next startup naturally detects the version change.)
             CheckAndApplyTranslationGameFiles(skipVersionCheck: true);
+            CheckAndApplyDateBasedMixes();
         }
 
         private void LblUpdateStatus_LeftClick(object sender, EventArgs e)
