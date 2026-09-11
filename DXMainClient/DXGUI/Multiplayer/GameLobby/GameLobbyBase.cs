@@ -17,12 +17,8 @@ using ClientCore.Enums;
 using DTAClient.DXGUI.Multiplayer.CnCNet;
 using DTAClient.Online.EventArguments;
 using ClientCore.Extensions;
-
-using DTAClient.DXGUI.Generic;
-
 using TextCopy;
 using System.Diagnostics;
-
 
 namespace DTAClient.DXGUI.Multiplayer.GameLobby
 {
@@ -315,9 +311,9 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             toggleFavoriteItem = mapContextMenu.Items.First();
 
             mapContextMenu.AddItem("Copy Map Name".L10N("Client:Main:CopyMapName"),
-                selectAction: () => ClipboardService.SetText(Map?.Name));
+                selectAction: CopyMapNameToClipboard);
             mapContextMenu.AddItem("Copy Original Name".L10N("Client:Main:CopyOriginalMapName"),
-                selectAction: () => ClipboardService.SetText(Map?.UntranslatedName),
+                selectAction: CopyOriginalMapNameToClipboard,
                 visibilityChecker: () => Map?.UntranslatedName != Map?.Name);
             mapContextMenu.AddItem("Delete Map".L10N("Client:Main:DeleteMap"),
                 selectAction: DeleteMapConfirmation,
@@ -415,7 +411,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void InitializeGameOptionPresetUI()
         {
-            btnSaveLoadGameOptions = FindChild<XNAClientButton>(nameof(btnSaveLoadGameOptions), true);
+            btnSaveLoadGameOptions = FindChild<XNAClientButton>(nameof(btnSaveLoadGameOptions), optional: true);
 
             if (btnSaveLoadGameOptions != null)
             {
@@ -868,6 +864,30 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
         private void ShowInFolder() => Map?.OpenContainingFolder();
 
+        private void CopyMapNameToClipboard()
+        {
+            try
+            {
+                ClipboardService.SetText(Map?.Name);
+            }
+            catch (Exception)
+            {
+                XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"), "Unable to copy map name to clipboard.".L10N("Client:Main:ClipboardCopyMapNameFailed"));
+            }
+        }
+
+        private void CopyOriginalMapNameToClipboard()
+        {
+            try
+            {
+                ClipboardService.SetText(Map?.UntranslatedName);
+            }
+            catch (Exception)
+            {
+                XNAMessageBox.Show(WindowManager, "Error".L10N("Client:Main:Error"), "Unable to copy map name to clipboard.".L10N("Client:Main:ClipboardCopyMapNameFailed"));
+            }
+        }
+
         private void MapPreviewBox_ToggleFavorite(object sender, EventArgs e) =>
             ToggleFavoriteMap();
 
@@ -1183,7 +1203,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             ReadINIForControl(lblStart);
             ReadINIForControl(lblTeam);
 
-            btnPlayerExtraOptionsOpen = FindChild<XNAClientButton>(nameof(btnPlayerExtraOptionsOpen), true);
+            btnPlayerExtraOptionsOpen = FindChild<XNAClientButton>(nameof(btnPlayerExtraOptionsOpen), optional: true);
 
             if (btnPlayerExtraOptionsOpen != null)
             {
@@ -2682,7 +2702,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 if (checkBox.AllowScoring)
                     return Rank.None;
             }
-            
+
             foreach (GameLobbyDropDown dropDown in DropDowns)
             {
                 if (dropDown.AllowScoring)
