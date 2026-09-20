@@ -317,6 +317,7 @@ namespace DTAClient.DXGUI
                             .AddTransientXnaControl<XNALabel>()
                             .AddTransientXnaControl<XNALinkLabel>()
                             .AddTransientXnaControl<XNAClientLinkLabel>()
+                            .AddTransientXnaControl<XNARandomLabel>()
                             .AddTransientXnaControl<XNAListBox>()
                             .AddTransientXnaControl<XNAMultiColumnListBox>()
                             .AddTransientXnaControl<XNAPanel>()

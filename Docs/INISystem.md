@@ -177,6 +177,48 @@ TextAnchor=            ; enum (NONE | LEFT | RIGHT | HORIZONTAL_CENTER | TOP | B
                        ;           this will set a text anchor in label draw box.
 ```
 
+#### [XNARandomLabel](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNARandomLabel.cs)
+
+_(inherits [XNALabel](#XNALabel))_
+
+A label that reads a local text file and displays a randomly picked line from it. A random line is picked when
+the control is initialized; the text can be re-randomized at any later point in code with `RandomizeText()`.
+
+```ini
+[SOMERANDOMLABEL]       ; XNARandomLabel
+TextFile=Tips.txt       ; string,  the name or path of the text file to read the text from. 
+                        ;          The `.txt` extension is optional. A relative name or path is looked 
+                        ;          up from the client's translation folders, the theme's resource 
+                        ;          folder, the base resource folder and the game's root folder, 
+                        ;          in this order. An absolute path is used as-is. 
+                        ;          The file must be UTF-8 encoded (a byte order mark is allowed).
+IgnoreCommentLines=true ; boolean, whether lines that begin with `;` or `#` are treated as comments 
+                        ;          and skipped. Empty lines are always skipped. Default value is `true`.
+ConvertLineBreaks=true  ; boolean, whether `@` characters in the text file are converted into line breaks, 
+                        ;          like the `Text` attribute of controls does. Use `\@` for a literal 
+                        ;          `@` character. Default value is `true`.
+```
+
+All other properties are inherited from [XNALabel](#XNALabel), so e.g. `TextColor`, `FontIndex`,
+`TextAnchor` and `AnchorPoint` work the same way. If no random text file can be read, the label keeps
+the text it was given with `Text`, or stays empty.
+
+An example text file, placed in the `Resources` folder of the client:
+
+```txt
+; This line is a comment and won't be displayed.
+Remember to build plenty of anti-air defences!
+You can gift units to your allies with the G key.@Press the G key again to take the gift back.
+Send feedback to feedback\@example.com
+```
+
+The third line is displayed as two lines because of the `@` line break marker, and the fourth line
+displays a literal `@` character because it was escaped with a backslash.
+
+Unlike with the `Text` attribute, the line breaks of the text file itself are not preserved: every
+line of the file is a separate random text. Code can re-randomize the label at any time with
+`RandomizeText()`.
+
 #### [XNAButton](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNAButton.cs)
 
 _(inherits [XNAControl](#XNAControl))_
