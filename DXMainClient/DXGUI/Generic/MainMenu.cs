@@ -546,6 +546,20 @@ namespace DTAClient.DXGUI.Generic
             }
         }
 
+        private void CheckAndApplyDateBasedMixes()
+        {
+            try
+            {
+                // ApplyDateBasedMixes() 内部已通过 SHA1 比对做幂等保护，
+                // 因此不需要用日期来跳过，每次启动都检查即可。
+                Translation.ApplyDateBasedMixes();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Failed to apply date-based mixes. " + ex.ToString());
+            }
+        }
+
         private void FirstRunMessageBox_NoClicked(XNAMessageBox messageBox)
         {
             if (customComponentDialogQueued)
@@ -757,6 +771,7 @@ namespace DTAClient.DXGUI.Generic
             CheckForbiddenFiles();
             CheckIfFirstRun();
             CheckAndApplyTranslationGameFiles();
+            CheckAndApplyDateBasedMixes();
 
             Logger.Log("Main menu initialization complete.");
 
@@ -871,6 +886,7 @@ namespace DTAClient.DXGUI.Generic
             // (If a restart were required, Updater.Restart fires and the client
             // exits; the next startup naturally detects the version change.)
             CheckAndApplyTranslationGameFiles(skipVersionCheck: true);
+            CheckAndApplyDateBasedMixes();
         }
 
         private void LblUpdateStatus_LeftClick(object sender, EventArgs e)
