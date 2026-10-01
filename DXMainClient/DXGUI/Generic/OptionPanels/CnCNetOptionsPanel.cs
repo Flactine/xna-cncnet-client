@@ -184,7 +184,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             lblTunnelMode.Text = "Tunnel mode when hosting:".L10N("Client:DTAConfig:TunnelMode");
             lblTunnelMode.ClientRectangle = new Rectangle(
                 chkSteamIntegration.X,
-                chkSteamIntegration.Bottom + 12, 165, 0);
+                chkSteamIntegration.Bottom + 10, 165, 0);
 
             AddChild(lblTunnelMode);
 
@@ -214,8 +214,8 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             chkEnableP2P = new XNAClientCheckBox(WindowManager);
             chkEnableP2P.Name = nameof(chkEnableP2P);
             chkEnableP2P.ClientRectangle = new Rectangle(
-                ddTunnelMode.X,
-                ddTunnelMode.Bottom + 9, 0, 0);
+                lblTunnelMode.X,
+                lblTunnelMode.Bottom + 27, 0, 0);
             chkEnableP2P.Text = "Enable direct P2P connections".L10N("Client:DTAConfig:EnableP2P");
             chkEnableP2P.CheckedChanged += ChkEnableP2P_CheckedChanged;
             AddChild(chkEnableP2P);
@@ -304,7 +304,7 @@ namespace DTAClient.DXGUI.Generic.OptionPanels
             gameListPanel.AddChild(lblFollowedGames);
 
             // Max number of games per column
-            const int maxGamesPerColumn = 5;
+            const int maxGamesPerColumn = 4;
             // Spacing buffer between columns
             const int columnBuffer = 20;
             // Spacing buffer between rows
