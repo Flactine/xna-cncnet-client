@@ -237,6 +237,103 @@ public class Translation : ICloneable
     }
 
     /// <summary>
+    /// 根据当前日期，将 [DateBasedMixes] 中配置的 MIX 文件硬链接/复制到游戏目录，
+    /// 并移除所有不在当前日期范围内的目标文件。
+    /// </summary>
+    public static void ApplyDateBasedMixes()
+    {
+        ClientConfiguration.Instance.RefreshDateBasedMixes();
+
+        DateTime today = DateTime.Now;
+        Logger.Log($"DateBasedMixes: Checking date-based mixes for {today:yyyy-MM-dd}");
+
+        var mixes = ClientConfiguration.Instance.DateBasedMixes;
+        if (mixes.Count == 0)
+            return;
+
+        // 收集所有在范围内的条目使用的目标文件
+        HashSet<string> activeTargets = new(StringComparer.OrdinalIgnoreCase);
+        foreach (var dbm in mixes)
+        {
+            if (IsDateInRange(today, dbm.StartMonth, dbm.StartDay, dbm.EndMonth, dbm.EndDay))
+            {
+                activeTargets.Add(SafePath.CombineFilePath(ProgramConstants.GamePath, dbm.Target));
+            }
+        }
+
+        // 第一遍：处理在范围内的条目（创建/更新硬链接）
+        foreach (var dbm in mixes)
+        {
+            if (!IsDateInRange(today, dbm.StartMonth, dbm.StartDay, dbm.EndMonth, dbm.EndDay))
+                continue;
+
+            string sourcePath = SafePath.CombineFilePath(ProgramConstants.GamePath, dbm.Source);
+            string targetPath = SafePath.CombineFilePath(ProgramConstants.GamePath, dbm.Target);
+
+            if (File.Exists(sourcePath))
+            {
+                string sourceHash = Utilities.CalculateSHA1ForFile(sourcePath);
+                string targetHash = Utilities.CalculateSHA1ForFile(targetPath);
+
+                if (sourceHash != targetHash)
+                {
+                    Logger.Log($"DateBasedMixes: Applying {dbm.EventName} - " +
+                        $"linking {dbm.Source} -> {dbm.Target}");
+                    FileExtensions.CreateHardLinkFromSource(sourcePath, targetPath);
+                    new FileInfo(targetPath).IsReadOnly = true;
+                }
+            }
+            else
+            {
+                Logger.Log($"DateBasedMixes: Source file not found for {dbm.EventName}: {sourcePath}");
+            }
+        }
+
+        // 第二遍：处理不在范围内的条目（删除目标文件），
+        // 但跳过那些被在范围内条目共享的目标文件
+        foreach (var dbm in mixes)
+        {
+            if (IsDateInRange(today, dbm.StartMonth, dbm.StartDay, dbm.EndMonth, dbm.EndDay))
+                continue;
+
+            string targetPath = SafePath.CombineFilePath(ProgramConstants.GamePath, dbm.Target);
+
+            // 如果该目标文件被某个在范围内的条目使用，不删除
+            if (activeTargets.Contains(targetPath))
+                continue;
+
+            if (File.Exists(targetPath))
+            {
+                Logger.Log($"DateBasedMixes: Removing {dbm.EventName} - deleting {dbm.Target}");
+                new FileInfo(targetPath).IsReadOnly = false;
+                File.Delete(targetPath);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 判断指定日期是否在给定的日期范围内。
+    /// 支持跨年范围（如 12-31 ~ 01-02）。
+    /// </summary>
+    private static bool IsDateInRange(DateTime date, int startMonth, int startDay, int endMonth, int endDay)
+    {
+        int dateValue = date.Month * 100 + date.Day;
+        int startValue = startMonth * 100 + startDay;
+        int endValue = endMonth * 100 + endDay;
+
+        if (startValue <= endValue)
+        {
+            // 普通范围，不跨年：如 12-24 ~ 12-26
+            return dateValue >= startValue && dateValue <= endValue;
+        }
+        else
+        {
+            // 跨年范围：如 12-31 ~ 01-02
+            return dateValue >= startValue || dateValue <= endValue;
+        }
+    }
+
+    /// <summary>
     /// Lists valid available translations from the <see cref="TranslationsFolderPath"/> along with their UI names.
     /// A localization is valid if it has a corresponding <see cref="TranslationIniName"/> file in the <see cref="TranslationsFolderPath"/>.
     /// </summary>
