@@ -414,46 +414,17 @@ namespace ClientCore
                 string source = parts[1].Trim();
                 string target = parts[2].Trim();
 
-                int startMonth, startDay, endMonth, endDay;
-
-                if (dateRange.Contains('~'))
+                if (!DateRange.TryParse(dateRange, out DateRange range))
                 {
-                    string[] dateParts = dateRange.Split('~');
-                    if (dateParts.Length != 2)
-                    {
-                        throw new IniParseException($"Invalid date range format for [{DATE_BASED_MIXES}]{key}! " +
-                            $"Expected MM-DD~MM-DD, read {dateRange}.");
-                    }
-
-                    ParseDate(dateParts[0].Trim(), key, out startMonth, out startDay);
-                    ParseDate(dateParts[1].Trim(), key, out endMonth, out endDay);
-                }
-                else
-                {
-                    ParseDate(dateRange, key, out startMonth, out startDay);
-                    endMonth = startMonth;
-                    endDay = startDay;
+                    throw new IniParseException($"Invalid date format for [{DATE_BASED_MIXES}]{key}! " +
+                        $"Expected MM-DD or MM-DD~MM-DD, read {dateRange}.");
                 }
 
                 dateBasedMixes.Add(new DateBasedMix(
-                    key, startMonth, startDay, endMonth, endDay, source, target));
+                    key, range.StartMonth, range.StartDay, range.EndMonth, range.EndDay, source, target));
             }
 
             return dateBasedMixes;
-        }
-
-        private static void ParseDate(string dateStr, string key, out int month, out int day)
-        {
-            string[] parts = dateStr.Split('-');
-            if (parts.Length != 2 ||
-                !int.TryParse(parts[0], out month) ||
-                !int.TryParse(parts[1], out day) ||
-                month < 1 || month > 12 ||
-                day < 1 || day > 31)
-            {
-                throw new IniParseException($"Invalid date format for [{DATE_BASED_MIXES}]{key}! " +
-                    $"Expected MM-DD, read {dateStr}.");
-            }
         }
 
         public string ExtraExeCommandLineParameters => clientDefinitionsIni.GetStringValue(SETTINGS, "ExtraCommandLineParams", string.Empty);

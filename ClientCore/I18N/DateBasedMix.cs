@@ -1,4 +1,6 @@
 ﻿#nullable enable
+using System;
+
 namespace ClientCore.I18N;
 
 /// <summary>
@@ -15,4 +17,11 @@ public readonly record struct DateBasedMix(
     string EventName,
     int StartMonth, int StartDay,
     int EndMonth, int EndDay,
-    string Source, string Target);
+    string Source, string Target)
+{
+    /// <summary>
+    /// 判断指定日期是否在该条目配置的日期范围内。
+    /// </summary>
+    public bool IsActiveOn(DateTime date) =>
+        new DateRange(StartMonth, StartDay, EndMonth, EndDay).Contains(date);
+}

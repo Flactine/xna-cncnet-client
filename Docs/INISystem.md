@@ -227,6 +227,13 @@ _(inherits [XNAClientButton](#XNAClientButton))_
 URL=             ; string, the URL-link for OS Windows.
 UnixURL=         ; string, the URL-link for Unix-like OS.
 Arguments=       ; string, the arguments separated with space for URL-link.
+IdleTextureAlt=  ; string, loads a texture with the specific file name with suffix as button idle texture 
+                 ;         that is displayed instead of IdleTexture while the current date matches AltDate.
+HoverTextureAlt= ; string, loads a texture with the specific file name with suffix as button hover texture 
+                 ;         that is displayed instead of HoverTexture while the current date matches AltDate.
+AltDate=         ; string, the date (MM-DD) or date range (MM-DD~MM-DD) on which the alternative textures 
+                 ;         are displayed instead of the regular ones, for example 04-01 or 12-24~12-26. 
+                 ;         Ranges may wrap around the new year (for example 12-31~01-02).
 ```
 
 #### [XNACheckbox](https://github.com/Rampastring/Rampastring.XNAUI/blob/master/XNAControls/XNACheckBox.cs)

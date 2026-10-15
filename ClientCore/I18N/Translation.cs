@@ -255,7 +255,7 @@ public class Translation : ICloneable
         HashSet<string> activeTargets = new(StringComparer.OrdinalIgnoreCase);
         foreach (var dbm in mixes)
         {
-            if (IsDateInRange(today, dbm.StartMonth, dbm.StartDay, dbm.EndMonth, dbm.EndDay))
+            if (dbm.IsActiveOn(today))
             {
                 activeTargets.Add(SafePath.CombineFilePath(ProgramConstants.GamePath, dbm.Target));
             }
@@ -264,7 +264,7 @@ public class Translation : ICloneable
         // 第一遍：处理在范围内的条目（创建/更新硬链接）
         foreach (var dbm in mixes)
         {
-            if (!IsDateInRange(today, dbm.StartMonth, dbm.StartDay, dbm.EndMonth, dbm.EndDay))
+            if (!dbm.IsActiveOn(today))
                 continue;
 
             string sourcePath = SafePath.CombineFilePath(ProgramConstants.GamePath, dbm.Source);
@@ -293,7 +293,7 @@ public class Translation : ICloneable
         // 但跳过那些被在范围内条目共享的目标文件
         foreach (var dbm in mixes)
         {
-            if (IsDateInRange(today, dbm.StartMonth, dbm.StartDay, dbm.EndMonth, dbm.EndDay))
+            if (dbm.IsActiveOn(today))
                 continue;
 
             string targetPath = SafePath.CombineFilePath(ProgramConstants.GamePath, dbm.Target);
@@ -308,28 +308,6 @@ public class Translation : ICloneable
                 new FileInfo(targetPath).IsReadOnly = false;
                 File.Delete(targetPath);
             }
-        }
-    }
-
-    /// <summary>
-    /// 判断指定日期是否在给定的日期范围内。
-    /// 支持跨年范围（如 12-31 ~ 01-02）。
-    /// </summary>
-    private static bool IsDateInRange(DateTime date, int startMonth, int startDay, int endMonth, int endDay)
-    {
-        int dateValue = date.Month * 100 + date.Day;
-        int startValue = startMonth * 100 + startDay;
-        int endValue = endMonth * 100 + endDay;
-
-        if (startValue <= endValue)
-        {
-            // 普通范围，不跨年：如 12-24 ~ 12-26
-            return dateValue >= startValue && dateValue <= endValue;
-        }
-        else
-        {
-            // 跨年范围：如 12-31 ~ 01-02
-            return dateValue >= startValue || dateValue <= endValue;
         }
     }
 
