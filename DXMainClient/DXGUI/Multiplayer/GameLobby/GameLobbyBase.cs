@@ -168,6 +168,11 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected XNAClientButton btnLeaveGame;
         protected GameLaunchButton btnLaunchGame;
         protected XNAClientButton btnPickRandomMap;
+
+        /// <summary>
+        /// The optional "pick a random map and launch the game" button.
+        /// </summary>
+        protected XNAClientButton btnLaunchRandomMap;
         protected XNALabel lblMapName;
         protected XNALabel lblMapAuthor;
         protected XNALabel lblGameMode;
@@ -378,6 +383,12 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
 
             btnPickRandomMap = FindChild<XNAClientButton>(nameof(btnPickRandomMap));
             btnPickRandomMap.LeftClick += BtnPickRandomMap_LeftClick;
+
+            // Optional so that clients using older INI resources keep working.
+            btnLaunchRandomMap = FindChild<XNAClientButton>(nameof(btnLaunchRandomMap), optional: true);
+
+            if (btnLaunchRandomMap != null)
+                btnLaunchRandomMap.LeftClick += BtnLaunchRandomMap_LeftClick;
 
             CheckBoxes.ForEach(chk => chk.CheckedChanged += ChkBox_CheckedChanged);
             DropDowns.ForEach(dd => dd.SelectedIndexChanged += Dropdown_SelectedIndexChanged);
@@ -604,6 +615,22 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
         protected abstract void AddNotice(string message, Color color);
 
         private void BtnPickRandomMap_LeftClick(object sender, EventArgs e) => PickRandomMap();
+
+        /// <summary>
+        /// Handles clicking the combined "random map + launch game" button.
+        /// Picks a random map and, if a map was actually picked, immediately runs
+        /// the same logic as clicking the launch game button.
+        /// </summary>
+        private void BtnLaunchRandomMap_LeftClick(object sender, EventArgs e)
+        {
+            if (!btnLaunchGame.Enabled)
+                return;
+
+            if (!PickRandomMap())
+                return;
+
+            BtnLaunchGame_LeftClick(btnLaunchGame, EventArgs.Empty);
+        }
 
         private void TbMapSearch_InputReceived(object sender, EventArgs e) => ListMaps();
 
@@ -983,13 +1010,17 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
                 mapListTooltip.Text = string.Empty;
         }
 
-        private void PickRandomMap()
+        /// <summary>
+        /// Picks a random map for the current game mode and player count.
+        /// </summary>
+        /// <returns><see langword="true"/> if a map was picked; otherwise <see langword="false"/>.</returns>
+        private bool PickRandomMap()
         {
             int totalPlayerCount = Players.Count(p => p.SideId < ddPlayerSides[0].Items.Count - 1)
                    + AIPlayers.Count;
             List<GameModeMap> gameModeMaps = GetRandomGameModeMaps(totalPlayerCount);
             if (gameModeMaps.Count < 1)
-                return;
+                return false;
 
             int randomValue = random.Next(0, gameModeMaps.Count);
             GameModeMap = gameModeMaps[randomValue];
@@ -999,6 +1030,7 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             tbMapSearch.Text = string.Empty;
             tbMapSearch.OnSelectedChanged();
             ListMaps();
+            return true;
         }
 
         private List<GameModeMap> GetRandomGameModeMaps(int playerCount)
@@ -2495,6 +2527,10 @@ namespace DTAClient.DXGUI.Multiplayer.GameLobby
             GameModeMap = gameModeMap;
 
             _ = UpdateLaunchGameButtonStatus();
+
+            // Keep the combined random map + launch button in sync with the launch button.
+            if (btnLaunchRandomMap != null)
+                btnLaunchRandomMap.Enabled = btnLaunchGame.Enabled;
 
             SetMapLabels();
 
