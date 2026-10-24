@@ -1,4 +1,4 @@
-﻿using ClientCore.Extensions;
+using ClientCore.Extensions;
 using System;
 using Microsoft.Xna.Framework;
 using Rampastring.XNAUI.XNAControls;
@@ -113,7 +113,7 @@ namespace ClientGUI
 
             btnOK.CenterOnParent();
             btnOK.ClientRectangle = new Rectangle(btnOK.X,
-                Height - 28, btnOK.Width, btnOK.Height);
+                Height - 31, btnOK.Width, btnOK.Height);
         }
 
         private void AddYesNoButtons()
@@ -132,7 +132,7 @@ namespace ClientGUI
             AddChild(btnYes);
 
             btnYes.ClientRectangle = new Rectangle((Width - ((btnYes.Width + 5) * 2)) / 2,
-                Height - 28, btnYes.Width, btnYes.Height);
+                Height - 31, btnYes.Width, btnYes.Height);
 
             XNAButton btnNo = new XNAButton(WindowManager);
             btnNo.FontIndex = 1;
@@ -148,7 +148,7 @@ namespace ClientGUI
             AddChild(btnNo);
 
             btnNo.ClientRectangle = new Rectangle(btnYes.X + btnYes.Width + 10,
-                Height - 28, btnNo.Width, btnNo.Height);
+                Height - 31, btnNo.Width, btnNo.Height);
         }
 
         private void AddOKCancelButtons()
@@ -167,7 +167,7 @@ namespace ClientGUI
             AddChild(btnOK);
 
             btnOK.ClientRectangle = new Rectangle((Width - ((btnOK.Width + 5) * 2)) / 2,
-                Height - 28, btnOK.Width, btnOK.Height);
+                Height - 31, btnOK.Width, btnOK.Height);
 
             XNAButton btnCancel = new XNAButton(WindowManager);
             btnCancel.FontIndex = 1;
@@ -183,7 +183,7 @@ namespace ClientGUI
             AddChild(btnCancel);
 
             btnCancel.ClientRectangle = new Rectangle(btnOK.X + btnOK.Width + 10,
-                Height - 28, btnCancel.Width, btnCancel.Height);
+                Height - 31, btnCancel.Width, btnCancel.Height);
         }
 
         private void BtnOK_LeftClick(object sender, EventArgs e)
