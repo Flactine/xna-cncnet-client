@@ -161,6 +161,7 @@ namespace DTAClient.DXGUI.Generic
         private XNAClientButton btnStatistics;
         private XNAClientButton btnCredits;
         private XNAClientButton btnExtras;
+        private XNAClientButton btnDailyLuck;
 
         /// <summary>
         /// Initializes the main menu's controls.
@@ -246,6 +247,16 @@ namespace DTAClient.DXGUI.Generic
             btnExtras.HoverSoundEffect = new EnhancedSoundEffect("MainMenu/button.wav");
             btnExtras.LeftClick += BtnExtras_LeftClick;
 
+            btnDailyLuck = new XNAClientButton(WindowManager);
+            btnDailyLuck.Name = nameof(btnDailyLuck);
+            btnDailyLuck.IdleTexture = AssetLoader.LoadTexture("160pxbtn.png");
+            btnDailyLuck.HoverTexture = AssetLoader.LoadTexture("160pxbtn_c.png");
+            btnDailyLuck.HoverSoundEffect = new EnhancedSoundEffect("MainMenu/button.wav");
+            btnDailyLuck.Text = "Daily Luck".L10N("Client:Main:DailyLuck");
+            btnDailyLuck.ToolTipText = "Shows your luck value for today. It stays the same all day and changes at midnight.".L10N("Client:Main:DailyLuckToolTip");
+            btnDailyLuck.ClientRectangle = new Rectangle(490, 664, UIDesignConstants.BUTTON_WIDTH_160, UIDesignConstants.BUTTON_HEIGHT);
+            btnDailyLuck.LeftClick += BtnDailyLuck_LeftClick;
+
             var btnExit = new XNAClientButton(WindowManager);
             btnExit.Name = nameof(btnExit);
             btnExit.IdleTexture = AssetLoader.LoadTexture("MainMenu/exitgame.png");
@@ -281,6 +292,7 @@ namespace DTAClient.DXGUI.Generic
             AddChild(btnStatistics);
             AddChild(btnCredits);
             AddChild(btnExtras);
+            AddChild(btnDailyLuck);
             AddChild(btnExit);
             AddChild(lblCnCNetStatus);
             AddChild(lblCnCNetPlayerCount);
@@ -1079,6 +1091,12 @@ namespace DTAClient.DXGUI.Generic
 
         private void BtnExtras_LeftClick(object sender, EventArgs e) =>
             extrasWindow.Enable();
+
+        /// <summary>
+        /// Shows the player's luck value for today in a message box.
+        /// </summary>
+        private void BtnDailyLuck_LeftClick(object sender, EventArgs e) =>
+            DailyLuckDialog.Show(WindowManager);
 
         private void BtnExit_LeftClick(object sender, EventArgs e)
         {

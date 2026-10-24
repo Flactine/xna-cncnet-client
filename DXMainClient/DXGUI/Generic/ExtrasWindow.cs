@@ -1,4 +1,4 @@
-﻿using ClientCore;
+using ClientCore;
 using ClientGUI;
 using DTAClient.Domain;
 using ClientCore.Extensions;
@@ -22,7 +22,7 @@ namespace DTAClient.DXGUI.Generic
         public override void Initialize()
         {
             Name = "ExtrasWindow";
-            ClientRectangle = new Rectangle(0, 0, 284, 190);
+            ClientRectangle = new Rectangle(0, 0, 284, 232);
             BackgroundTexture = AssetLoader.LoadTexture("extrasMenu.png");
 
             var btnExStatistics = new XNAClientButton(WindowManager);
@@ -43,15 +43,23 @@ namespace DTAClient.DXGUI.Generic
             btnExCredits.Text = "Credits".L10N("Client:Main:Credits");
             btnExCredits.LeftClick += BtnExCredits_LeftClick;
 
+            var btnExDailyLuck = new XNAClientButton(WindowManager);
+            btnExDailyLuck.Name = nameof(btnExDailyLuck);
+            btnExDailyLuck.ClientRectangle = new Rectangle(76, 143, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
+            btnExDailyLuck.Text = "Daily Luck".L10N("Client:Main:DailyLuck");
+            btnExDailyLuck.ToolTipText = "Shows your luck value for today. It stays the same all day and changes at midnight.".L10N("Client:Main:DailyLuckToolTip");
+            btnExDailyLuck.LeftClick += BtnExDailyLuck_LeftClick;
+
             var btnExCancel = new XNAClientButton(WindowManager);
             btnExCancel.Name = nameof(btnExCancel);
-            btnExCancel.ClientRectangle = new Rectangle(76, 160, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
+            btnExCancel.ClientRectangle = new Rectangle(76, 202, UIDesignConstants.BUTTON_WIDTH_133, UIDesignConstants.BUTTON_HEIGHT);
             btnExCancel.Text = "Cancel".L10N("Client:Main:ButtonCancel");
             btnExCancel.LeftClick += BtnExCancel_LeftClick;
 
             AddChild(btnExStatistics);
             AddChild(btnExMapEditor);
             AddChild(btnExCredits);
+            AddChild(btnExDailyLuck);
             AddChild(btnExCancel);
 
             base.Initialize();
@@ -86,6 +94,9 @@ namespace DTAClient.DXGUI.Generic
         {
             ProcessLauncher.StartShellProcess(ClientConfiguration.Instance.CreditsURL);
         }
+
+        private void BtnExDailyLuck_LeftClick(object sender, EventArgs e) =>
+            DailyLuckDialog.Show(WindowManager);
 
         private void BtnExCancel_LeftClick(object sender, EventArgs e)
         {

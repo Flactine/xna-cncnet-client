@@ -190,6 +190,7 @@ namespace ClientCore
             ForceLowestDetailLevel = new BoolSetting(iniFile, VIDEO, "ForceLowestDetailLevel", false);
             MinimizeWindowsOnGameStart = new BoolSetting(iniFile, OPTIONS, "MinimizeWindowsOnGameStart", true);
             AutoRemoveUnderscoresFromName = new BoolSetting(iniFile, OPTIONS, "AutoRemoveUnderscoresFromName", true);
+            InstallationId = new StringSetting(iniFile, OPTIONS, nameof(InstallationId), string.Empty);
             GenerateTranslationStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateTranslationStub), false);
             GenerateOnlyNewValuesInTranslationStub = new BoolSetting(iniFile, OPTIONS, nameof(GenerateOnlyNewValuesInTranslationStub), false);
             TranslationStubNotificationLevel = new IntSetting(iniFile, OPTIONS, nameof(TranslationStubNotificationLevel), (int)TranslationNotificationLevel.Default);
@@ -422,6 +423,12 @@ namespace ClientCore
         public BoolSetting MinimizeWindowsOnGameStart { get; private set; }
 
         public BoolSetting AutoRemoveUnderscoresFromName { get; private set; }
+
+        /// <summary>
+        /// A random identifier that is generated on first use. It is used as a machine
+        /// identifier where the Windows machine GUID is unavailable.
+        /// </summary>
+        public StringSetting InstallationId { get; private set; }
 
         public BoolSetting GenerateTranslationStub { get; private set; }
 
