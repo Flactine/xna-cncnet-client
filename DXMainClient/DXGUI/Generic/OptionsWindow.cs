@@ -49,10 +49,10 @@ namespace DTAClient.DXGUI.Generic
         public override void Initialize()
         {
             Name = "OptionsWindow";
-            ClientRectangle = new Rectangle(0, 0, 576, 475);
+            ClientRectangle = new Rectangle(0, 0, 668, 475);
             BackgroundTexture = AssetLoader.LoadTextureUncached("optionsbg.png");
 
-            const int tabWidth = UIDesignConstants.BUTTON_WIDTH_78;
+            const int tabWidth = UIDesignConstants.BUTTON_WIDTH_92;
 
             tabControl = new XNAClientTabControl(WindowManager);
             tabControl.Name = "tabControl";
